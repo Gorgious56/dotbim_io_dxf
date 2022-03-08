@@ -32,14 +32,21 @@ def dotbim_to_dxf(dotbim_filepath):
         dotbim_mesh_to_dxf_mesh(block_mesh_def, dotbim_mesh)
         for elt in elts:
             block_elt_def = dxf_file.blocks.new(name=elt.info.get("Name", str(elt.guid)))
-            block_elt_def.add_blockref(block_mesh_def.name, insert=(0, 0, 0))
-            block_elt_instance = dxf_msp.add_blockref(block_elt_def.name, insert=(0, 0, 0))
+            attr_names = list(elt.info.keys())
+            attr_names.extend(("guid", "type"))
+            for attr_name in attr_names:
+                # Can't seem to make the invisible attribute work. Setting the texts really really small for now
+                block_elt_def.add_attdef(attr_name, dxfattribs={"invisible": True, "height": 0.00001})
             matrix = ezdxf.math.Matrix44.translate(elt.vector.x, elt.vector.y, elt.vector.z)
             rot = elt.rotation
             matrix_rotation = pyquaternion.Quaternion(rot.qw, rot.qx, rot.qy, rot.qz).rotation_matrix
             for i, col in enumerate(matrix_rotation):
                 matrix.set_col(i, col)
             block_elt_instance.transform(matrix)
+
+            attributes = {attrib: value for (attrib, value) in elt.info.items()}
+            attributes.update({"guid": elt.guid, "type": elt.type})
+            block_elt_instance.add_auto_attribs(attributes)
 
     dotbim_path = Path(dotbim_filepath)
     dxf_filepath = dotbim_path.with_name(dotbim_path.stem + ".dxf")
