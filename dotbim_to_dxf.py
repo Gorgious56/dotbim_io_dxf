@@ -3,6 +3,7 @@ from pathlib import Path
 import dotbimpy
 import ezdxf
 import pyquaternion
+import uuid
 
 
 def dotbim_mesh_to_dxf_mesh(layout, dotbim_mesh):
@@ -34,10 +35,10 @@ def dotbim_to_dxf(dotbim_filepath):
         meshes_users[elt.mesh_id].append(elt)
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in file.meshes if m.mesh_id == mesh_id), None)
-        block_mesh_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}")
+        block_mesh_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}_{uuid.uuid4()}")
         dotbim_mesh_to_dxf_mesh(block_mesh_def, dotbim_mesh)
         for elt in elts:
-            block_elt_def = dxf_file.blocks.new(name=elt.info.get("Name", str(elt.guid)))
+            block_elt_def = dxf_file.blocks.new(name=str(elt.guid))
             block_elt_def.add_blockref(block_mesh_def.name, insert=(0, 0, 0), dxfattribs={"color": 0})  # Color BY BLOCK
 
             attr_names = set(elt.info.keys())
