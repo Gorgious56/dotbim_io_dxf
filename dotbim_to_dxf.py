@@ -2,6 +2,7 @@ from collections import defaultdict
 from pathlib import Path
 import dotbimpy
 import ezdxf
+import pyquaternion
 
 
 def dotbim_mesh_to_dxf_mesh(layout, dotbim_mesh):
@@ -29,7 +30,14 @@ def dotbim_to_dxf(dotbim_filepath):
         meshes_users[elt.mesh_id].append(elt)
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in file.meshes if m.mesh_id == mesh_id), None)
-        mesh = dotbim_mesh_to_dxf_mesh(dxf_msp, dotbim_mesh)
+        for elt in elts:
+            mesh = dotbim_mesh_to_dxf_mesh(dxf_msp, dotbim_mesh)
+            matrix = ezdxf.math.Matrix44.translate(elt.vector.x, elt.vector.y, elt.vector.z)
+            rot = elt.rotation
+            matrix_rotation = pyquaternion.Quaternion(rot.qw, rot.qx, rot.qy, rot.qz).rotation_matrix
+            for i, col in enumerate(matrix_rotation):
+                matrix.set_col(i, col)
+            mesh.transform(matrix)
 
     dotbim_path = Path(dotbim_filepath)
     dxf_filepath = dotbim_path.with_name(dotbim_path.stem + ".dxf")
