@@ -21,7 +21,6 @@ def dotbim_mesh_to_dxf_mesh(layout, dotbim_mesh):
 
 
 def rgb_to_hex(vals):
-    # Ensure values are rounded integers, convert to hex, and concatenate
     return int("0x" + "".join(["{:02X}".format(int(round(x))) for x in vals]), 16)
 
 
