@@ -16,9 +16,7 @@ def dotbim_mesh_to_dxf_mesh(layout, dotbim_mesh):
             (dotbim_mesh.indices[i], dotbim_mesh.indices[i + 1], dotbim_mesh.indices[i + 2])
             for i in range(0, len(dotbim_mesh.indices), 3)
         ]
-
     return dxf_mesh
-
 
 def dotbim_to_dxf(dotbim_filepath):
     file = dotbimpy.File.read(dotbim_filepath)
@@ -30,14 +28,16 @@ def dotbim_to_dxf(dotbim_filepath):
         meshes_users[elt.mesh_id].append(elt)
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in file.meshes if m.mesh_id == mesh_id), None)
+        block_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}")
+        dotbim_mesh_to_dxf_mesh(block_def, dotbim_mesh)
         for elt in elts:
-            mesh = dotbim_mesh_to_dxf_mesh(dxf_msp, dotbim_mesh)
             matrix = ezdxf.math.Matrix44.translate(elt.vector.x, elt.vector.y, elt.vector.z)
             rot = elt.rotation
             matrix_rotation = pyquaternion.Quaternion(rot.qw, rot.qx, rot.qy, rot.qz).rotation_matrix
             for i, col in enumerate(matrix_rotation):
                 matrix.set_col(i, col)
-            mesh.transform(matrix)
+            block_instance = dxf_msp.add_blockref(block_def.name, insert=(0, 0, 0))
+            block_instance.transform(matrix)
 
     dotbim_path = Path(dotbim_filepath)
     dxf_filepath = dotbim_path.with_name(dotbim_path.stem + ".dxf")
