@@ -40,8 +40,8 @@ def dotbim_to_dxf(dotbim_filepath):
             block_elt_def = dxf_file.blocks.new(name=elt.info.get("Name", str(elt.guid)))
             block_elt_def.add_blockref(block_mesh_def.name, insert=(0, 0, 0), dxfattribs={"color": 0})  # Color BY BLOCK
 
-            attr_names = list(elt.info.keys())
-            attr_names.extend(("guid", "type"))
+            attr_names = set(elt.info.keys())
+            attr_names.union({"guid", "type"})
             for attr_name in attr_names:
                 # Can't seem to make the invisible attribute work. Setting the texts really really small for now
                 block_elt_def.add_attdef(attr_name, dxfattribs={"invisible": True, "height": 0.00001})
