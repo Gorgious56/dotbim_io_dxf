@@ -6,7 +6,7 @@ import pyquaternion
 import uuid
 
 
-def dotbim_mesh_to_dxf_mesh(layout, dotbim_mesh):
+def add_mesh_to_layout(layout, dotbim_mesh):
     dxf_mesh = layout.add_mesh(dxfattribs={"color": 0})  # Color BY BLOCK
     with dxf_mesh.edit_data() as mesh_data:
         mesh_data.vertices = [
@@ -47,21 +47,23 @@ def get_attributes(dotbim_element):
 
 
 def dotbim_to_dxf(dotbim_filepath):
-    file = dotbimpy.File.read(dotbim_filepath)
+    dotbim_file = dotbimpy.File.read(dotbim_filepath)
     dxf_file = ezdxf.new(dxfversion="R2010")
+    for key, value in dotbim_file.info.items():
+        dxf_file.header.custom_vars.append(key, value)
     dxf_msp = dxf_file.modelspace()
     meshes_users = defaultdict(list)
     elt_types = set()
 
-    for elt in file.elements:
+    for elt in dotbim_file.elements:
         meshes_users[elt.mesh_id].append(elt)
         elt_types.add(elt.type)
     for layer_name in get_layer_names(elt_types):
         dxf_file.layers.new(layer_name)
     for mesh_id, elts in meshes_users.items():
-        dotbim_mesh = next((m for m in file.meshes if m.mesh_id == mesh_id), None)
+        dotbim_mesh = next((m for m in dotbim_file.meshes if m.mesh_id == mesh_id), None)
         block_mesh_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}_{uuid.uuid4()}")
-        dotbim_mesh_to_dxf_mesh(block_mesh_def, dotbim_mesh)
+        add_mesh_to_layout(block_mesh_def, dotbim_mesh)
         for elt in elts:
             if len(elts) == 1:
                 block_elt_def = block_mesh_def
@@ -90,11 +92,8 @@ def dotbim_to_dxf(dotbim_filepath):
     dotbim_path = Path(dotbim_filepath)
     dxf_filepath = dotbim_path.with_name(dotbim_path.stem + ".dxf")
     dxf_file.saveas(str(dxf_filepath))
-    return str(dxf_filepath)
 
 
 if __name__ == "__main__":
     dotbim_filepath = r"c:/path/to/file.bim"
-
-    dxf_filepath = dotbim_to_dxf(dotbim_filepath)
-    print(f"File successfully exported to {dxf_filepath}")
+    dotbim_to_dxf(dotbim_filepath)
