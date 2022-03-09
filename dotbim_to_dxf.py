@@ -29,9 +29,15 @@ def dotbim_to_dxf(dotbim_filepath):
     dxf_file = ezdxf.new(dxfversion="R2010")
     dxf_msp = dxf_file.modelspace()
     meshes_users = defaultdict(list)
+    elt_types = set()
 
     for elt in file.elements:
         meshes_users[elt.mesh_id].append(elt)
+        elt_types.add(elt.type)
+    for elt_type in elt_types:
+        for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
+            elt_type = elt_type.replace(char, "_")
+        dxf_file.layers.new(elt_type)
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in file.meshes if m.mesh_id == mesh_id), None)
         block_mesh_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}_{uuid.uuid4()}")
@@ -52,6 +58,7 @@ def dotbim_to_dxf(dotbim_filepath):
                 dxfattribs={
                     "color": 257,  # True Color
                     "true_color": rgb_to_hex((elt.color.r, elt.color.g, elt.color.b)),
+                    "layer": elt.type
                     # "transparency": float(elt.color.a / 255),  # Throws DXFValueError. Can't make it work for INSERT ?
                 },
             )
@@ -76,4 +83,4 @@ if __name__ == "__main__":
     dotbim_filepath = r"c:/path/to/file.bim"
 
     dxf_filepath = dotbim_to_dxf(dotbim_filepath)
-    input(f"File successfully exported to {dxf_filepath}")
+    print(f"File successfully exported to {dxf_filepath}")
