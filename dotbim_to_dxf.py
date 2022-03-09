@@ -31,6 +31,13 @@ def get_layer_names(elt_types):
         yield elt_type
 
 
+
+def get_attributes(dotbim_element):
+    attributes = {attrib: value for (attrib, value) in dotbim_element.info.items()}
+    attributes.update({"guid": dotbim_element.guid, "type": dotbim_element.type})
+    return attributes
+
+
 def dotbim_to_dxf(dotbim_filepath):
     file = dotbimpy.File.read(dotbim_filepath)
     dxf_file = ezdxf.new(dxfversion="R2010")
@@ -54,9 +61,8 @@ def dotbim_to_dxf(dotbim_filepath):
                 block_elt_def = dxf_file.blocks.new(name=str(elt.guid))
                 block_elt_def.add_blockref(block_mesh_def.name, insert=(0, 0, 0), dxfattribs={"color": 0})  # BY BLOCK
 
-            attr_names = set(elt.info.keys())
-            attr_names.union({"guid", "type"})
-            for attr_name in attr_names:
+            attributes = get_attributes(elt)
+            for attr_name in attributes.keys():
                 # Can't seem to make the invisible attribute work. Setting the texts really really small for now
                 block_elt_def.add_attdef(attr_name, dxfattribs={"invisible": True, "height": 0.00001})
 
@@ -77,8 +83,6 @@ def dotbim_to_dxf(dotbim_filepath):
                 matrix.set_col(i, col)
             block_elt_instance.transform(matrix)
 
-            attributes = {attrib: value for (attrib, value) in elt.info.items()}
-            attributes.update({"guid": elt.guid, "type": elt.type})
             block_elt_instance.add_auto_attribs(attributes)
 
     dotbim_path = Path(dotbim_filepath)
