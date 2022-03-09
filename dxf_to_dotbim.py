@@ -1,6 +1,7 @@
 from pathlib import Path
 import dotbimpy
 import ezdxf
+import uuid
 
 
 def dxf_to_dotbim(dxf_filepath):
@@ -8,9 +9,13 @@ def dxf_to_dotbim(dxf_filepath):
     dotbim_elements = []
 
     dxf_file = ezdxf.readfile(str(dxf_filepath))
-    blocks = dxf_file.blocks
-    for layout in blocks:
-        if not layout.is_block_layout or layout.block.is_anonymous or layout.block.is_xref:
+    inserts = dxf_file.modelspace().query("INSERT")
+    block_names = {insert.dxf.name for insert in inserts}
+    block_inserts = dict()
+
+    for block_name in block_names:
+        layout = dxf_file.blocks.get(block_name)
+        if layout.block.is_anonymous or layout.block.is_xref:
             continue
         for entity in layout:
             if not isinstance(entity, ezdxf.entities.mesh.Mesh):
@@ -21,8 +26,32 @@ def dxf_to_dotbim(dxf_filepath):
             vertices = []
             for c in entity.vertices:
                 vertices.extend((c[0], c[1], c[2]))
-            dotbim_meshes.append(dotbimpy.Mesh(mesh_id=len(dotbim_meshes), coordinates=vertices, indices=faces))
+            mesh_id = len(dotbim_meshes)
+            dotbim_meshes.append(dotbimpy.Mesh(mesh_id=mesh_id, coordinates=vertices, indices=faces))
+        block_inserts[block_name] = mesh_id
 
+    for insert in inserts:
+        mesh_id = block_inserts[insert.block().name]
+        ucs = insert.ucs()
+        location = dotbimpy.Vector(x=ucs.origin.x, y=ucs.origin.y, z=ucs.origin.z)
+        info = {attrib.dxf.tag: attrib.dxf.text for attrib in insert.attribs if attrib.dxf.text != ""}
+        # TODO figure out a way to get rotation from coordinate system
+        rotation = dotbimpy.Rotation(qx=0, qy=0, qz=0, qw=1)
+        element_type = info.get("type") or insert.dxf.layer
+        # TODO set correct color and transparency
+        color = dotbimpy.Color(r=255, g=255, b=255, a=255)
+
+        dotbim_elements.append(
+            dotbimpy.Element(
+                mesh_id=mesh_id,
+                vector=location,
+                guid=uuid.uuid4(),
+                info=info,
+                rotation=rotation,
+                type=element_type,
+                color=color,
+            )
+        )
 
     # file_info = {"Author": author, "Date": date.today().strftime("%d.%m.%Y")}
     dotbim_file = dotbimpy.File("1.0.0", meshes=dotbim_meshes, elements=dotbim_elements, info={})
