@@ -31,6 +31,14 @@ def get_layer_names(elt_types):
         yield elt_type
 
 
+def get_matrix(dotbim_element):
+    matrix = ezdxf.math.Matrix44.translate(dotbim_element.vector.x, dotbim_element.vector.y, dotbim_element.vector.z)
+    rot = dotbim_element.rotation
+    matrix_rotation = pyquaternion.Quaternion(rot.qw, rot.qx, rot.qy, rot.qz).rotation_matrix
+    for i, col in enumerate(matrix_rotation):
+        matrix.set_col(i, col)
+    return matrix
+
 
 def get_attributes(dotbim_element):
     attributes = {attrib: value for (attrib, value) in dotbim_element.info.items()}
@@ -76,13 +84,7 @@ def dotbim_to_dxf(dotbim_filepath):
                     # "transparency": float(elt.color.a / 255),  # Throws DXFValueError. Can't make it work for INSERT ?
                 },
             )
-            matrix = ezdxf.math.Matrix44.translate(elt.vector.x, elt.vector.y, elt.vector.z)
-            rot = elt.rotation
-            matrix_rotation = pyquaternion.Quaternion(rot.qw, rot.qx, rot.qy, rot.qz).rotation_matrix
-            for i, col in enumerate(matrix_rotation):
-                matrix.set_col(i, col)
-            block_elt_instance.transform(matrix)
-
+            block_elt_instance.transform(get_matrix(elt))
             block_elt_instance.add_auto_attribs(attributes)
 
     dotbim_path = Path(dotbim_filepath)
