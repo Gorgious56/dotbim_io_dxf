@@ -43,8 +43,11 @@ def dotbim_to_dxf(dotbim_filepath):
         block_mesh_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}_{uuid.uuid4()}")
         dotbim_mesh_to_dxf_mesh(block_mesh_def, dotbim_mesh)
         for elt in elts:
-            block_elt_def = dxf_file.blocks.new(name=str(elt.guid))
-            block_elt_def.add_blockref(block_mesh_def.name, insert=(0, 0, 0), dxfattribs={"color": 0})  # Color BY BLOCK
+            if len(elts) == 1:
+                block_elt_def = block_mesh_def
+            else:
+                block_elt_def = dxf_file.blocks.new(name=str(elt.guid))
+                block_elt_def.add_blockref(block_mesh_def.name, insert=(0, 0, 0), dxfattribs={"color": 0})  # BY BLOCK
 
             attr_names = set(elt.info.keys())
             attr_names.union({"guid", "type"})
