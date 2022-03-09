@@ -24,6 +24,13 @@ def rgb_to_hex(vals):
     return int("0x" + "".join(["{:02X}".format(int(round(x))) for x in vals]), 16)
 
 
+def get_layer_names(elt_types):
+    for elt_type in elt_types:
+        for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
+            elt_type = elt_type.replace(char, "_")
+        yield elt_type
+
+
 def dotbim_to_dxf(dotbim_filepath):
     file = dotbimpy.File.read(dotbim_filepath)
     dxf_file = ezdxf.new(dxfversion="R2010")
@@ -34,10 +41,8 @@ def dotbim_to_dxf(dotbim_filepath):
     for elt in file.elements:
         meshes_users[elt.mesh_id].append(elt)
         elt_types.add(elt.type)
-    for elt_type in elt_types:
-        for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
-            elt_type = elt_type.replace(char, "_")
-        dxf_file.layers.new(elt_type)
+    for layer_name in get_layer_names(elt_types):
+        dxf_file.layers.new(layer_name)
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in file.meshes if m.mesh_id == mesh_id), None)
         block_mesh_def = dxf_file.blocks.new(name=f"Mesh {mesh_id}_{uuid.uuid4()}")
