@@ -51,6 +51,8 @@ def dotbim_to_dxf(dotbim_filepath):
         meshes_users[elt.mesh_id].append(elt)
         if elt.type not in dxf_file.layers:
             create_layer(dxf_file.layers, elt.type)        
+    attribs_layer = create_layer(dxf_file.layers, "z_Dotbim_Attributes")
+    attribs_layer.freeze()
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in dotbim_file.meshes if m.mesh_id == mesh_id), None)
         block_name = f"Mesh {mesh_id}_{uuid.uuid4()}"
@@ -71,8 +73,7 @@ def dotbim_to_dxf(dotbim_filepath):
             attributes = {attrib: value for (attrib, value) in elt.info.items()}
             attributes.update({"guid": elt.guid, "type": elt.type})
             for key, value in attributes.items():
-                # Can't seem to make the invisible attribute work. Setting the texts really really small for now
-                block_elt_instance.add_attrib(key, value, dxfattribs={"invisible": 1, "height": 0.00001})
+                block_elt_instance.add_attrib(key, value, dxfattribs={"layer": "z_Dotbim_Attributes"})
 
     dotbim_path = Path(dotbim_filepath)
     dxf_filepath = dotbim_path.with_name(dotbim_path.stem + ".dxf")
