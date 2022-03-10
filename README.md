@@ -2,6 +2,8 @@
 
 This is a collection of utility scripts to convert from and to the dxf (Drawing Exchange Format) file format :
 
+[Link to Dotbim github](https://github.com/paireks/dotbim)
+
 1. Converting dotbim files to dxf :
 
 - The dotbim geometry is exported in the dxf file using [MESH entities](https://ezdxf.readthedocs.io/en/master/dxfentities/mesh.html) (most lightweight entity type for 3D in dxf)
