@@ -24,11 +24,10 @@ def rgb_to_hex(vals):
     return int("0x" + "".join(["{:02X}".format(int(round(x))) for x in vals]), 16)
 
 
-def get_layer_names(elt_types):
-    for elt_type in elt_types:
-        for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
-            elt_type = elt_type.replace(char, "_")
-        yield elt_type
+def create_layer(layers, name):
+    for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
+        name = name.replace(char, "_")
+    return layers.new(name)
 
 
 def get_matrix(dotbim_element):
@@ -47,13 +46,11 @@ def dotbim_to_dxf(dotbim_filepath):
         dxf_file.header.custom_vars.append(key, value)
     dxf_msp = dxf_file.modelspace()
     meshes_users = defaultdict(list)
-    elt_types = set()
 
     for elt in dotbim_file.elements:
         meshes_users[elt.mesh_id].append(elt)
-        elt_types.add(elt.type)
-    for layer_name in get_layer_names(elt_types):
-        dxf_file.layers.new(layer_name)
+        if elt.type not in dxf_file.layers:
+            create_layer(dxf_file.layers, elt.type)        
     for mesh_id, elts in meshes_users.items():
         dotbim_mesh = next((m for m in dotbim_file.meshes if m.mesh_id == mesh_id), None)
         block_name = f"Mesh {mesh_id}_{uuid.uuid4()}"
