@@ -38,8 +38,9 @@ def dxf_to_dotbim(dxf_filepath):
         # TODO figure out a way to get rotation from coordinate system
         rotation = dotbimpy.Rotation(qx=0, qy=0, qz=0, qw=1)
         element_type = info.get("type") or insert.dxf.layer
-        # TODO set correct color and transparency
-        color = dotbimpy.Color(r=255, g=255, b=255, a=255)
+        rgb = ezdxf.colors.int2rgb(insert.dxf.true_color)
+        alpha = (1 - ezdxf.colors.transparency2float(insert.dxf.transparency)) * 255
+        color = dotbimpy.Color(r=rgb[0], g=rgb[1], b=rgb[2], a=alpha)
 
         dotbim_elements.append(
             dotbimpy.Element(
