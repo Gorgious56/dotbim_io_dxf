@@ -20,10 +20,6 @@ def create_blockdef_from_dotbim_mesh(dxf_file, block_name, dotbim_mesh):
         ]
 
 
-def rgb_to_hex(vals):
-    return int("0x" + "".join(["{:02X}".format(int(round(x))) for x in vals]), 16)
-
-
 def create_layer(layers, name):
     for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
         name = name.replace(char, "_")
@@ -61,7 +57,7 @@ def dotbim_to_dxf(dotbim_filepath):
                 insert=(0, 0, 0),
                 dxfattribs={
                     "color": 257,  # True Color
-                    "true_color": rgb_to_hex((elt.color.r, elt.color.g, elt.color.b)),
+                    "true_color": ezdxf.colors.rgb2int((elt.color.r, elt.color.g, elt.color.b)),
                     "layer": str(elt.type)
                     # "transparency": float(elt.color.a / 255),  # Throws DXFValueError. Can't make it work for INSERT ?
                 },
