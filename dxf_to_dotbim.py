@@ -1,9 +1,10 @@
+from datetime import date
 from pathlib import Path
+import uuid
+import numpy as np
+from pyquaternion import Quaternion
 import dotbimpy
 import ezdxf
-import uuid
-from pyquaternion import Quaternion
-import numpy as np
 
 
 def dxf_to_dotbim(dxf_filepath):
@@ -61,9 +62,10 @@ def dxf_to_dotbim(dxf_filepath):
                 color=color,
             )
         )
-
-    # file_info = {"Author": author, "Date": date.today().strftime("%d.%m.%Y")}
-    dotbim_file = dotbimpy.File("1.0.0", meshes=dotbim_meshes, elements=dotbim_elements, info={})
+    author = dxf_file.header.custom_vars.get("Author", "John Doe")
+    date_file = dxf_file.header.custom_vars.get("Date", date.today().strftime("%d.%m.%Y"))
+    file_info = {"Author": author, "Date": date_file}
+    dotbim_file = dotbimpy.File("1.0.0", meshes=dotbim_meshes, elements=dotbim_elements, info=file_info)
 
     dotbim_path = Path(dxf_filepath)
     dotbim_path = dotbim_path.with_name(dotbim_path.stem + "_export.bim")
@@ -72,4 +74,5 @@ def dxf_to_dotbim(dxf_filepath):
 
 if __name__ == "__main__":
     dxf_filepath = r"c:/path/to/file.dxf"
+    dxf_filepath = r"D:\CREA\Dev\dotbim\References\suzannes.dxf"
     dxf_to_dotbim(dxf_filepath)
