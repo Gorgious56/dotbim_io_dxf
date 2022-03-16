@@ -49,16 +49,15 @@ def dxf_to_dotbim(dxf_filepath):
         color = dotbimpy.Color(r=rgb[0], g=rgb[1], b=rgb[2], a=alpha)
 
         info = {attrib.dxf.tag: attrib.dxf.text for attrib in insert.attribs if attrib.dxf.text != ""}
-        element_type = info.get("type") or insert.dxf.layer
 
         dotbim_elements.append(
             dotbimpy.Element(
                 mesh_id=mesh_id,
                 vector=location,
-                guid=uuid.uuid4(),
+                guid=info.get("guid", uuid.uuid4()),
                 info=info,
                 rotation=rotation,
-                type=element_type,
+                type=info.get("type", insert.dxf.layer),
                 color=color,
             )
         )
