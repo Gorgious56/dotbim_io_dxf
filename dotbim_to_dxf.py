@@ -21,7 +21,7 @@ def create_blockdef_from_dotbim_mesh(dxf_file, block_name, dotbim_mesh):
 
 
 def create_layer(layers, name):
-    for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘"):
+    for char in ("/", "<", ">", "\\", "“", '"', ":", ";", "?", "*", "|", "=", "‘", "`"):
         name = name.replace(char, "_")
     return layers.new(name)
 
