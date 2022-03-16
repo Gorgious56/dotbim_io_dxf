@@ -65,6 +65,11 @@ def dxf_to_dotbim(dxf_filepath):
     author = dxf_file.header.custom_vars.get("Author", "John Doe")
     date_file = dxf_file.header.custom_vars.get("Date", date.today().strftime("%d.%m.%Y"))
     file_info = {"Author": author, "Date": date_file}
+    for tag, name in dxf_file.header.custom_vars:
+        if tag in ("Author", "Date"):
+            continue
+        file_info[tag] = name
+        
     dotbim_file = dotbimpy.File("1.0.0", meshes=dotbim_meshes, elements=dotbim_elements, info=file_info)
 
     dotbim_path = Path(dxf_filepath)
