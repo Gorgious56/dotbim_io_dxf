@@ -58,8 +58,8 @@ def dotbim_to_dxf(dotbim_filepath):
                 dxfattribs={
                     "color": 257,  # True Color
                     "true_color": ezdxf.colors.rgb2int((elt.color.r, elt.color.g, elt.color.b)),
-                    "layer": str(elt.type)
-                    # "transparency": float(elt.color.a / 255),  # Throws DXFValueError. Can't make it work for INSERT ?
+                    "layer": str(elt.type),
+                    "transparency": ezdxf.colors.float2transparency(1 - float(elt.color.a / 255)),
                 },
             )
             block_elt_instance.transform(get_matrix(elt))
