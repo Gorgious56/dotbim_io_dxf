@@ -32,3 +32,9 @@ After installing python and adding pip to the PATH system variables, you can ins
 and 
 
 `pip install ezdxf`
+
+The [example file](https://github.com/Gorgious56/dotbim_io_dxf/tree/master/test) contains geometry for a house :
+
+![image](https://user-images.githubusercontent.com/25156105/159176128-89258a5d-8157-4032-af73-9b2b0b71c1bd.png)
+
+
