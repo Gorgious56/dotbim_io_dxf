@@ -78,5 +78,4 @@ def dxf_to_dotbim(dxf_filepath):
 
 if __name__ == "__main__":
     dxf_filepath = r"c:/path/to/file.dxf"
-    dxf_filepath = r"D:\CREA\Dev\dotbim\References\suzannes.dxf"
     dxf_to_dotbim(dxf_filepath)
