@@ -50,8 +50,8 @@ def dxf_to_dotbim(dxf_filepath):
         quat = Quaternion(matrix=matrix)
         rotation = dotbimpy.Rotation(qx=float(quat.x), qy=float(quat.y), qz=float(quat.z), qw=float(quat.w))
 
-        rgb = ezdxf.colors.int2rgb(insert.dxf.true_color)
-        alpha = (1 - ezdxf.colors.transparency2float(insert.dxf.transparency)) * 255
+        rgb = ezdxf.colors.int2rgb(insert.dxf.true_color) if insert.dxf.true_color else (255, 255, 255)
+        alpha = (1 - ezdxf.colors.transparency2float(insert.dxf.transparency)) * 255 if insert.dxf.transparency else 255
         color = dotbimpy.Color(r=rgb[0], g=rgb[1], b=rgb[2], a=alpha)
 
         info = {attrib.dxf.tag: attrib.dxf.text for attrib in insert.attribs if attrib.dxf.text != ""}
