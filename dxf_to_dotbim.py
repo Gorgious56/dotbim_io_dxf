@@ -23,13 +23,18 @@ def dxf_to_dotbim(dxf_filepath):
         vertices = []
         faces = []
         for entity in layout:
-            if not isinstance(entity, ezdxf.entities.mesh.Mesh):
-                continue
             verts_existing = len(vertices)
-            for f in entity.faces:
-                faces.extend((verts_existing // 3 + f[0], verts_existing // 3 + f[1], verts_existing // 3 + f[2]))
-            for c in entity.vertices:
-                vertices.extend((c[0], c[1], c[2]))
+            if isinstance(entity, ezdxf.entities.mesh.Mesh):
+                for f in entity.faces:
+                    faces.extend((verts_existing // 3 + f[0], verts_existing // 3 + f[1], verts_existing // 3 + f[2]))
+                for c in entity.vertices:
+                    vertices.extend((c[0], c[1], c[2]))
+            elif isinstance(entity, ezdxf.entities.Face3d):
+                face3d_verts = entity.wcs_vertices()
+                faces.extend([verts_existing // 3 + i for i in range(len(face3d_verts))])
+                for co in face3d_verts:
+                    vertices.extend(co)
+
         mesh_id = len(dotbim_meshes)
         dotbim_meshes.append(dotbimpy.Mesh(mesh_id=mesh_id, coordinates=vertices, indices=faces))
         block_inserts[block_name] = mesh_id
@@ -69,7 +74,7 @@ def dxf_to_dotbim(dxf_filepath):
         if tag in ("Author", "Date"):
             continue
         file_info[tag] = name
-        
+
     dotbim_file = dotbimpy.File("1.0.0", meshes=dotbim_meshes, elements=dotbim_elements, info=file_info)
 
     dotbim_path = Path(dxf_filepath)
