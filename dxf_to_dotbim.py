@@ -20,17 +20,18 @@ def dxf_to_dotbim(dxf_filepath):
         layout = dxf_file.blocks.get(block_name)
         if layout.block.is_anonymous or layout.block.is_xref:
             continue
+        vertices = []
+        faces = []
         for entity in layout:
             if not isinstance(entity, ezdxf.entities.mesh.Mesh):
                 continue
-            faces = []
+            verts_existing = len(vertices)
             for f in entity.faces:
-                faces.extend((f[0], f[1], f[2]))
-            vertices = []
+                faces.extend((verts_existing // 3 + f[0], verts_existing // 3 + f[1], verts_existing // 3 + f[2]))
             for c in entity.vertices:
                 vertices.extend((c[0], c[1], c[2]))
-            mesh_id = len(dotbim_meshes)
-            dotbim_meshes.append(dotbimpy.Mesh(mesh_id=mesh_id, coordinates=vertices, indices=faces))
+        mesh_id = len(dotbim_meshes)
+        dotbim_meshes.append(dotbimpy.Mesh(mesh_id=mesh_id, coordinates=vertices, indices=faces))
         block_inserts[block_name] = mesh_id
 
     for insert in inserts:
